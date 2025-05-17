@@ -57,7 +57,6 @@ function InstancedSpheres({ count = 1000 }: InstancedSpheresProps) {
 
   const { colorNode, positionNode, timeUniform, computeNode, arrayBuffer } = useMemo(() => {
     const timeUniform = uniform(0)
-    const t = timeUniform
 
     const typeSize = 3
     const size = count
@@ -110,7 +109,6 @@ function InstancedSpheres({ count = 1000 }: InstancedSpheresProps) {
     console.log(output)
   }
 
-  // Update time uniform on each frame and handle hover effect
   useFrame((state) => {
     if (timeUniform) {
       timeUniform.value = state.clock.getElapsedTime()
@@ -139,7 +137,6 @@ export default function App() {
       <directionalLight position={[-5, 3, 0]} intensity={1} />
       <InstancedSpheres />
       <gridHelper args={[20, 20]} />
-      {/* <axesHelper args={[5]} /> */}
     </Canvas>
   )
 }
