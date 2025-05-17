@@ -41,19 +41,6 @@ declare module '@react-three/fiber' {
 
 extend(THREE as any)
 
-const exampleWGSL = /* wgsl */ `
-
-  let cubeDim = ceil(pow(uniforms.instanceCount, 1.0/3.0));
-  let x = f32(index) % cubeDim;
-  let y = floor(f32(index) / cubeDim) % cubeDim;
-  let z = floor(f32(index) / (cubeDim * cubeDim));
-
-  let pos_x = (x / (cubeDim - 1.0)) * 2.0 - 1.0;
-  let pos_y = (y / (cubeDim - 1.0)) * 2.0 - 1.0;
-  let pos_z = (z / (cubeDim - 1.0)) * 2.0 - 1.0;
-
-`
-
 interface InstancedSpheresProps {
   count?: number
 }
@@ -62,6 +49,7 @@ function InstancedSpheres({ count = 1000 }: InstancedSpheresProps) {
   const { gl } = useThree()
   const renderer = gl as unknown as THREE.WebGPURenderer
   const meshRef = useRef<THREE.InstancedMesh>(null)
+
   useEffect(() => {
     if (!meshRef.current) return
     compute()
@@ -80,36 +68,38 @@ function InstancedSpheres({ count = 1000 }: InstancedSpheresProps) {
     const buffer = storage(arrayBuffer, 'vec3', size)
 
     const computeInitOrder = wgslFn(/* wgsl */ `
-					fn compute(
-						buffer: ptr<storage, array<vec3f>, read_write>,
-						count: f32,
-						index: u32,
-					) -> void {
-            let cubeDim = ceil(pow(count, 1.0 / 3.0));
-            let x = f32(index) % cubeDim;
-            let y = floor(f32(index) / cubeDim) % cubeDim;
-            let z = floor(f32(index) / (cubeDim * cubeDim));
 
-            let pos_x = (x / (cubeDim - 1.0)) * 2.0 - 1.0;
-            let pos_y = (y / (cubeDim - 1.0)) * 2.0 - 1.0;
-            let pos_z = (z / (cubeDim - 1.0)) * 2.0 - 1.0;
+			fn compute(
+				buffer: ptr<storage, array<vec3f>, read_write>,
+				count: f32,
+				index: u32,
+			) -> void {
+				let cubeDim = ceil(pow(count, 1.0 / 3.0));
+				let x = f32(index) % cubeDim;
+				let y = floor(f32(index) / cubeDim) % cubeDim;
+				let z = floor(f32(index) / (cubeDim * cubeDim));
 
-            buffer[index] = vec3f(pos_x, pos_y, pos_z);
-					}
-      `)
+				let pos_x = (x / (cubeDim - 1.0)) * 2.0 - 1.0;
+				let pos_y = (y / (cubeDim - 1.0)) * 2.0 - 1.0;
+				let pos_z = (z / (cubeDim - 1.0)) * 2.0 - 1.0;
 
+				buffer[index] = vec3f(pos_x, pos_y, pos_z);
+			}
+
+    `)
+
+    // compute shader
     const computeNode = computeInitOrder({
       buffer: buffer,
       count: count,
       index: instanceIndex,
-    }).compute(size, [8])
+    }).compute(count, [8])
 
     // vertex shader
     const positionNode = positionLocal.add(buffer.element(instanceIndex))
 
     // fragment shader
-    const baseColorNode = color('#aaf')
-    const colorNode = baseColorNode
+    const colorNode = color('#aaf')
 
     return { colorNode, positionNode, timeUniform, computeNode, arrayBuffer }
   }, [])
