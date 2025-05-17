@@ -15,22 +15,13 @@ import {
   positionLocal,
   storage,
   Fn,
-  wgslFn,
   color,
-  mix,
-  sin,
-  cos,
-  time,
   uniform,
-  vec3,
-  attribute,
-  smoothstep,
   float,
   ceil,
   pow,
   mod,
   floor,
-  dot,
   vec4,
 } from 'three/tsl'
 import * as THREE from 'three/webgpu'
@@ -67,7 +58,6 @@ function InstancedSpheres({ count = 1000 }: InstancedSpheresProps) {
     const buffer = storage(arrayBuffer, 'vec4', size)
 
     const computeInitOrder = Fn(() => {
-
       const cubeDim = float(ceil(pow(count, 1.0 / 3.0)))
       const index = float(instanceIndex)
 
@@ -84,7 +74,6 @@ function InstancedSpheres({ count = 1000 }: InstancedSpheresProps) {
 
       const newPosition = vec4(getInCubeBounds(x), getInCubeBounds(y), getInCubeBounds(z), 0)
       buffer.element(instanceIndex).assign(newPosition)
-
     })
 
     // compute shader
@@ -101,8 +90,8 @@ function InstancedSpheres({ count = 1000 }: InstancedSpheresProps) {
 
   async function compute() {
     await renderer.computeAsync(computeNode)
-    const output = new Float32Array(await renderer.getArrayBufferAsync(arrayBuffer))
-    console.log(output)
+    // const output = new Float32Array(await renderer.getArrayBufferAsync(arrayBuffer))
+    // console.log(output)
   }
 
   // Update time uniform on each frame and handle hover effect
