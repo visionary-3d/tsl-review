@@ -8,8 +8,7 @@ import {
   useThree,
 } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { easing } from 'maath'
-import { useMemo, useState, useRef, useEffect } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import {
   instanceIndex,
   positionLocal,
