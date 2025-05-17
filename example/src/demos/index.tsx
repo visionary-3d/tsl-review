@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 
-const IntancesShaderMaterial = { Component: lazy(() => import('./IntancesShaderMaterial')) }
+const Cubes = { Component: lazy(() => import('./Cubes')) }
 
 export {
-  IntancesShaderMaterial 
+  Cubes 
 }

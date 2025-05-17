@@ -41,60 +41,22 @@ declare module '@react-three/fiber' {
 
 extend(THREE as any)
 
-const exampleWGSL = /* wgsl */`
-
-  let cubeDim = ceil(pow(uniforms.instanceCount, 1.0/3.0));
-  let x = f32(index) % cubeDim;
-  let y = floor(f32(index) / cubeDim) % cubeDim;
-  let z = floor(f32(index) / (cubeDim * cubeDim));
-
-  let pos_x = (x / (cubeDim - 1.0)) * 2.0 - 1.0;
-  let pos_y = (y / (cubeDim - 1.0)) * 2.0 - 1.0;
-  let pos_z = (z / (cubeDim - 1.0)) * 2.0 - 1.0;
-
-`
-
 interface InstancedSpheresProps {
   count?: number
-  radius?: number
-  bounds?: number
-  speed?: number
 }
 
-function InstancedSpheres({ count = 1000, radius = 0.1, bounds = 10, speed = 0.001 }: InstancedSpheresProps) {
+function InstancedSpheres({ count = 1000 }: InstancedSpheresProps) {
   const { gl } = useThree()
   const renderer = gl as unknown as THREE.WebGPURenderer
   const meshRef = useRef<THREE.InstancedMesh>(null)
-  const [clicked, setClicked] = useState<number | null>(null)
-  const [hovered, setHovered] = useState<number | null>(null)
-
-  const [instanceData] = useMemo(() => {
-    const instanceDataArray = new Float32Array(count * 4)
-
-    for (let i = 0; i < count; i++) {
-      // Store random values for each instance (frequency, phase, amplitude)
-      instanceDataArray[i * 4 + 0] = 0.5 + Math.random() // frequency multiplier
-      instanceDataArray[i * 4 + 1] = Math.random() * Math.PI * 2 // random phase
-      instanceDataArray[i * 4 + 2] = 0.3 + Math.random() * 0.7 // amplitude multiplier
-      instanceDataArray[i * 4 + 3] = Math.random() // additional variation
-    }
-    return [instanceDataArray]
-  }, [count, bounds])
 
   useEffect(() => {
     if (!meshRef.current) return
-
-    if (meshRef.current.geometry) {
-      const instancedGeometry = meshRef.current.geometry as THREE.InstancedBufferGeometry
-      instancedGeometry.setAttribute('instanceData', new THREE.InstancedBufferAttribute(instanceData, 4))
-    }
-
-      compute()
-  }, [instanceData])
+    compute()
+  }, [])
 
   const { colorNode, positionNode, timeUniform, computeNode, arrayBuffer } = useMemo(() => {
     const timeUniform = uniform(0)
-    const t = timeUniform
 
     const typeSize = 4
     const size = count
@@ -105,6 +67,7 @@ function InstancedSpheres({ count = 1000, radius = 0.1, bounds = 10, speed = 0.0
     const buffer = storage(arrayBuffer, 'vec4', size)
 
     const computeInitOrder = Fn(() => {
+
       const cubeDim = float(ceil(pow(count, 1.0 / 3.0)))
       const index = float(instanceIndex)
 
@@ -120,36 +83,21 @@ function InstancedSpheres({ count = 1000, radius = 0.1, bounds = 10, speed = 0.0
       }
 
       const newPosition = vec4(getInCubeBounds(x), getInCubeBounds(y), getInCubeBounds(z), 0)
-
-      // const offset = buffer.element(instanceIndex)
-
-      // const direction = vec3(1, 1, 1)
-      // const posAlongWave = dot(offset, direction);
-
-      // const displacement = float(1).mul(sin(posAlongWave.mul(float(1)).add(t)));
-
-      // const direction = vec3(1, 1, 1)
-      // const posAlongWave = dot(offset, direction)
-
-      // const displacement = float(0.2).mul(sin(posAlongWave.mul(float(1)).add(t)))
-      // buffer.element(instanceIndex).assign(newPosition.add(displacement))
-
       buffer.element(instanceIndex).assign(newPosition)
 
     })
 
+    // compute shader
     const computeNode = computeInitOrder().compute(size, [8])
 
-
-
+    // vertex shader
     const positionNode = positionLocal.add(buffer.element(instanceIndex))
 
-    const baseColorNode = color('#aaf')
-
-    const colorNode = baseColorNode
+    // fragment shader
+    const colorNode = color('#aaf')
 
     return { colorNode, positionNode, timeUniform, computeNode, arrayBuffer }
-  }, [speed])
+  }, [])
 
   async function compute() {
     await renderer.computeAsync(computeNode)
@@ -186,7 +134,6 @@ export default function App() {
       <directionalLight position={[-5, 3, 0]} intensity={1} />
       <InstancedSpheres />
       <gridHelper args={[20, 20]} />
-      {/* <axesHelper args={[5]} /> */}
     </Canvas>
   )
 }
