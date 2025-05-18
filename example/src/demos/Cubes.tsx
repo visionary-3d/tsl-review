@@ -10,29 +10,7 @@ import {
 import { OrbitControls } from '@react-three/drei'
 import { easing } from 'maath'
 import { useMemo, useState, useRef, useEffect } from 'react'
-import {
-  instanceIndex,
-  positionLocal,
-  storage,
-  Fn,
-  wgslFn,
-  color,
-  mix,
-  sin,
-  cos,
-  time,
-  uniform,
-  vec3,
-  attribute,
-  smoothstep,
-  float,
-  ceil,
-  pow,
-  mod,
-  floor,
-  dot,
-  vec4,
-} from 'three/tsl'
+import { instanceIndex, positionLocal, storage, wgslFn, color, uniform } from 'three/tsl'
 import * as THREE from 'three/webgpu'
 
 declare module '@react-three/fiber' {
